@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fff6ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#2a2230" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="1-13">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" href="/icons/favicon.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<title>광남중 1-13</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fff6ee; --dot: #ffe3cf; --card: #ffffff; --text: #4a3b35; --muted: #a08c82;
+    --line: #f3e3d8; --accent: #ff8fab; --accent-soft: #ffe4ec; --shadow: 0 6px 0 #f5d9c8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #2a2230; --dot: #352b3d; --card: #362c3f; --text: #f5e9f0; --muted: #b9a5b8;
+      --line: #4a3d55; --accent: #ff9fb8; --accent-soft: #553a4f; --shadow: 0 6px 0 #1e1824;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; color: var(--text);
+    background-color: var(--bg);
+    background-image: radial-gradient(var(--dot) 2.5px, transparent 2.5px);
+    background-size: 26px 26px;
+    font-family: "Jua", "Malgun Gothic", sans-serif; font-weight: 400;
+    -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent;
+  }
+  main { max-width: 980px; margin: 0 auto; padding: 28px 16px 56px; }
+  header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+  h1, h2, h3, th, button { font-family: inherit; font-weight: 400; }
+  h1 { font-size: 30px; margin: 0; display: flex; align-items: center; gap: 12px; }
+  h1 .badge {
+    display: inline-grid; place-items: center; width: 56px; height: 56px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-size: 20px; box-shadow: var(--shadow);
+  }
+  h1 small { display: block; font-size: 15px; color: var(--muted); margin-top: 2px; }
+  .nav { display: flex; align-items: center; gap: 8px; }
+  .nav button {
+    border: none; background: var(--card); color: var(--text); font: inherit; font-size: 16px;
+    border-radius: 999px; padding: 8px 16px; cursor: pointer; box-shadow: var(--shadow);
+    transition: transform .12s, box-shadow .12s;
+  }
+  .nav button.round { width: 40px; height: 40px; padding: 0; }
+  .nav button:hover { transform: translateY(-2px); }
+  .nav button:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--line); }
+  #range {
+    min-width: 140px; text-align: center; font-size: 18px;
+    background: var(--accent-soft); padding: 8px 16px; border-radius: 999px;
+  }
+  section {
+    background: var(--card); border-radius: 32px; padding: 22px; margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  h2 { font-size: 22px; margin: 0 0 16px; display: flex; align-items: center; gap: 8px; }
+  .scroll { overflow-x: auto; padding-bottom: 4px; }
+  table { width: 100%; border-collapse: separate; border-spacing: 6px; min-width: 560px; table-layout: fixed; }
+  th, td { text-align: center; font-size: 15px; }
+  thead th { padding: 8px 4px; border-radius: 999px; background: var(--bg); font-size: 17px; }
+  thead th.today { background: var(--accent); color: #fff; }
+  th.period { width: 44px; }
+  tbody th.period {
+    font-size: 16px; color: var(--muted);
+  }
+  td { padding: 0; height: 52px; }
+  td.today { background: var(--accent-soft); border-radius: 20px; }
+  .subj {
+    display: flex; align-items: center; justify-content: center; height: 100%;
+    border-radius: 20px; padding: 6px 8px; line-height: 1.25; word-break: keep-all;
+    color: #4a3b35;
+  }
+  td.today .subj { outline: 3px solid var(--accent); outline-offset: -3px; }
+  .meals { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 14px; }
+  .meal {
+    background: var(--bg); border-radius: 28px; padding: 16px 16px 14px;
+    border: 3px solid transparent; position: relative;
+  }
+  .meal.today { border-color: var(--accent); }
+  .meal.today::after {
+    content: "오늘"; position: absolute; top: -12px; right: 14px;
+    background: var(--accent); color: #fff;
+    font-size: 13px; padding: 3px 10px; border-radius: 999px;
+  }
+  .meal h3 { font-size: 18px; margin: 0 0 10px; }
+  .meal ul { list-style: none; margin: 0; padding: 0; font-size: 16px; line-height: 1.75; }
+  .meal li::before { content: "•"; color: var(--accent); margin-right: 6px; }
+  .meal sup { color: var(--muted); font-size: 11px; margin-left: 2px; }
+  .kcal {
+    display: inline-block; margin-top: 10px; font-size: 13px; color: var(--muted);
+    background: var(--card); padding: 3px 10px; border-radius: 999px;
+  }
+  .type { color: var(--accent); margin-top: 8px; }
+  .empty { color: var(--muted); font-size: 16px; text-align: center; padding: 12px 0; margin: 0; }
+  .opts {
+    font-size: 15px; color: var(--muted); display: inline-flex; align-items: center; gap: 8px;
+    margin-bottom: 16px; cursor: pointer; user-select: none;
+  }
+  .opts input { appearance: none; width: 40px; height: 22px; border-radius: 999px; background: var(--line); position: relative; cursor: pointer; transition: background .15s; margin: 0; }
+  .opts input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left .15s; }
+  .opts input:checked { background: var(--accent); }
+  .opts input:checked::after { left: 21px; }
+  .hide-allergy .meal sup { display: none; }
+
+  /* 핸드폰 화면 */
+  @media (max-width: 600px) {
+    main { padding: max(16px, env(safe-area-inset-top)) 12px max(32px, env(safe-area-inset-bottom)); }
+    header { flex-direction: column; align-items: stretch; gap: 14px; margin-bottom: 16px; }
+    h1 { font-size: 24px; }
+    h1 .badge { width: 48px; height: 48px; font-size: 17px; }
+    .nav { justify-content: space-between; }
+    .nav button { padding: 8px 14px; }
+    #range { flex: 1; min-width: 0; font-size: 17px; }
+    section { border-radius: 26px; padding: 16px 12px; margin-bottom: 18px; }
+    h2 { font-size: 20px; margin-bottom: 12px; }
+    table { min-width: 0; border-spacing: 3px; }
+    thead th { font-size: 14px; padding: 6px 0; line-height: 1.15; }
+    thead th .date { display: block; font-size: 11px; opacity: .75; }
+    th.period { width: 22px; }
+    tbody th.period { font-size: 13px; }
+    th, td { font-size: 13px; }
+    td { height: 46px; }
+    .subj { border-radius: 14px; padding: 4px 2px; font-size: 13px; line-height: 1.1; }
+    td.today { border-radius: 14px; }
+    /* 급식은 옆으로 넘겨 보는 카드 */
+    .meals {
+      display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px;
+      margin: 0 -12px; padding: 14px 12px 8px; scrollbar-width: none;
+    }
+    .meals::-webkit-scrollbar { display: none; }
+    .meal { flex: 0 0 78%; scroll-snap-align: center; }
+    .meals .empty { flex: 1; }
+    .swipe-hint { display: block; }
+  }
+  .swipe-hint { display: none; font-size: 14px; color: var(--muted); text-align: center; margin-top: 4px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1><span class="badge">1-13</span><span>광남중학교<small>우리 반 시간표 · 급식표</small></span></h1>
+    <div class="nav">
+      <button id="prev" class="round" aria-label="지난주">◀</button>
+      <span id="range"></span>
+      <button id="next" class="round" aria-label="다음주">▶</button>
+      <button id="thisWeek">이번 주</button>
+    </div>
+  </header>
+
+  <section>
+    <h2>📚 시간표</h2>
+    <div class="scroll" id="timetable"><p class="empty">불러오는 중…</p></div>
+  </section>
+
+  <section id="mealSection">
+    <h2>🍚 급식</h2>
+    <label class="opts"><input type="checkbox" id="allergy" checked> 알레르기 번호 보기</label>
+    <div class="meals" id="meals"><p class="empty">불러오는 중…</p></div>
+    <p class="swipe-hint">👈 옆으로 밀어서 다른 요일 보기 👉</p>
+  </section>
+</main>
+
+<script>
+const DAYS = ['월', '화', '수', '목', '금'];
+// 과목마다 파스텔 색을 하나씩 정해 준다.
+const PASTELS = ['#ffd6e0', '#ffe8b8', '#d4f4dd', '#cfe8ff', '#e6d9ff', '#ffdcc7', '#c9f1ef', '#f9d9f4', '#e3f2c1', '#dfe3ff'];
+let monday = startOfWeek(new Date());
+
+function startOfWeek(d) {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const day = x.getDay();
+  // 주말에는 다음 주 월요일을 보여준다.
+  x.setDate(x.getDate() + (day === 0 ? 1 : day === 6 ? 2 : 1 - day));
+  return x;
+}
+function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function ymd(d) {
+  return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+}
+function label(d) { return `${d.getMonth() + 1}/${d.getDate()}`; }
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function colorOf(subject) {
+  let h = 0;
+  for (const ch of subject) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return PASTELS[h % PASTELS.length];
+}
+
+async function load() {
+  const days = DAYS.map((_, i) => addDays(monday, i));
+  const todayYmd = ymd(new Date());
+  document.getElementById('range').textContent = `${label(days[0])} ~ ${label(days[4])}`;
+  const tt = document.getElementById('timetable');
+  const ml = document.getElementById('meals');
+  tt.innerHTML = ml.innerHTML = '<p class="empty">불러오는 중…</p>';
+
+  let data;
+  try {
+    const res = await fetch(`/api/week?from=${ymd(days[0])}&to=${ymd(days[4])}`);
+    data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+  } catch (err) {
+    tt.innerHTML = ml.innerHTML = `<p class="empty">앗, 불러오지 못했어요 🥲 ${esc(err.message)}</p>`;
+    return;
+  }
+
+  // 시간표
+  const byDate = {};
+  let maxPeriod = 0;
+  for (const r of data.timetable) {
+    (byDate[r.date] ||= {})[r.period] = r.subject;
+    maxPeriod = Math.max(maxPeriod, r.period);
+  }
+  if (!maxPeriod) {
+    tt.innerHTML = '<p class="empty">이번 주는 시간표가 없어요 🌙</p>';
+  } else {
+    let html = '<table><thead><tr><th class="period"></th>';
+    days.forEach((d, i) => {
+      html += `<th class="${ymd(d) === todayYmd ? 'today' : ''}">${DAYS[i]} <span class="date">${label(d)}</span></th>`;
+    });
+    html += '</tr></thead><tbody>';
+    for (let p = 1; p <= maxPeriod; p++) {
+      html += `<tr><th class="period">${p}</th>`;
+      for (const d of days) {
+        const subj = byDate[ymd(d)]?.[p];
+        const cls = ymd(d) === todayYmd ? 'today' : '';
+        html += `<td class="${cls}">${subj ? `<div class="subj" style="background:${colorOf(subj)}">${esc(subj)}</div>` : ''}</td>`;
+      }
+      html += '</tr>';
+    }
+    tt.innerHTML = html + '</tbody></table>';
+  }
+
+  // 급식
+  const mealsByDate = {};
+  for (const m of data.meals) (mealsByDate[m.date] ||= []).push(m);
+  ml.innerHTML = days.map((d, i) => {
+    const list = mealsByDate[ymd(d)] || [];
+    const body = list.length
+      ? list.map(m => `
+          ${list.length > 1 ? `<div class="type">${esc(m.type)}</div>` : ''}
+          <ul>${m.dishes.map(x => `<li>${esc(x.name)}${x.allergy.length ? `<sup>${esc(x.allergy.join('.'))}</sup>` : ''}</li>`).join('')}</ul>
+          <span class="kcal">🔥 ${esc(m.calories)}</span>`).join('')
+      : '<p class="empty">급식이 없어요</p>';
+    return `<div class="meal ${ymd(d) === todayYmd ? 'today' : ''}"><h3>${DAYS[i]} ${label(d)}</h3>${body}</div>`;
+  }).join('');
+  // 핸드폰에서는 오늘 급식 카드가 먼저 보이게
+  const todayCard = ml.querySelector('.meal.today');
+  if (todayCard && ml.scrollWidth > ml.clientWidth) {
+    ml.scrollLeft = todayCard.offsetLeft - (ml.clientWidth - todayCard.offsetWidth) / 2;
+  }
+}
+
+document.getElementById('prev').onclick = () => { monday = addDays(monday, -7); load(); };
+document.getElementById('next').onclick = () => { monday = addDays(monday, 7); load(); };
+document.getElementById('thisWeek').onclick = () => { monday = startOfWeek(new Date()); load(); };
+document.getElementById('allergy').onchange = e => {
+  document.getElementById('mealSection').classList.toggle('hide-allergy', !e.target.checked);
+};
+load();
+
+// 앱 설치(PWA)용 서비스 워커
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+</script>
+</body>
+</html>
