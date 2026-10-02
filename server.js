@@ -23,6 +23,7 @@ const STATIC = {
   '/icons/icon-512.png': { path: 'icons/icon-512.png', type: 'image/png' },
   '/icons/apple-touch-icon.png': { path: 'icons/apple-touch-icon.png', type: 'image/png' },
   '/icons/favicon.png': { path: 'icons/favicon.png', type: 'image/png' },
+  '/icons/pompompurin.png': { path: 'icons/pompompurin.png', type: 'image/png' },
 };
 
 const server = http.createServer(async (req, res) => {
