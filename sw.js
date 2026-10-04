@@ -1,6 +1,6 @@
 // 앱 설치(PWA)와 오프라인 보기를 위한 서비스 워커
-const CACHE = 'class113-v1';
-const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/apple-touch-icon.png'];
+const CACHE = 'class113-v3';
+const SHELL = ['/', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png', '/icons/apple-touch-icon.png', '/icons/pompompurin.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));

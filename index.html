@@ -45,6 +45,9 @@
     background: var(--accent); color: #fff; font-size: 20px; box-shadow: var(--shadow);
   }
   h1 small { display: block; font-size: 15px; color: var(--muted); margin-top: 2px; }
+  h1 .mascot { width: 72px; height: auto; animation: bob 2.4s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(-5px) rotate(-3deg); } }
+  @media (prefers-reduced-motion: reduce) { h1 .mascot { animation: none; } }
   .nav { display: flex; align-items: center; gap: 8px; }
   .nav button {
     border: none; background: var(--card); color: var(--text); font: inherit; font-size: 16px;
@@ -117,6 +120,7 @@
     header { flex-direction: column; align-items: stretch; gap: 14px; margin-bottom: 16px; }
     h1 { font-size: 24px; }
     h1 .badge { width: 48px; height: 48px; font-size: 17px; }
+    h1 .mascot { width: 56px; margin-left: auto; }
     .nav { justify-content: space-between; }
     .nav button { padding: 8px 14px; }
     #range { flex: 1; min-width: 0; font-size: 17px; }
@@ -142,12 +146,35 @@
     .swipe-hint { display: block; }
   }
   .swipe-hint { display: none; font-size: 14px; color: var(--muted); text-align: center; margin-top: 4px; }
+
+  /* 알림장 */
+  .notices { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .notice {
+    display: flex; align-items: center; gap: 10px; background: var(--bg);
+    border-radius: 20px; padding: 10px 14px; font-size: 16px; line-height: 1.4;
+  }
+  .notice .tag { flex: none; font-size: 13px; padding: 3px 10px; border-radius: 999px; color: #4a3b35; }
+  .tag.공지 { background: #ffd6e0; } .tag.숙제 { background: #cfe8ff; } .tag.준비물 { background: #d4f4dd; }
+  .notice .text { flex: 1; word-break: keep-all; overflow-wrap: anywhere; }
+  .notice .due { flex: none; font-size: 13px; color: var(--muted); }
+  .notice .due.soon { color: var(--accent); }
+  .notice .del { display: none; flex: none; border: none; background: none; color: var(--muted); font: inherit; cursor: pointer; padding: 0 4px; }
+  .editing .notice .del { display: block; }
+  .write-toggle { border: none; background: none; color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; margin-left: auto; }
+  #noticeForm { display: none; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .editing #noticeForm { display: flex; }
+  #noticeForm select, #noticeForm input, #noticeForm button {
+    font: inherit; font-size: 15px; border: 2px solid var(--line); border-radius: 14px;
+    padding: 8px 10px; background: var(--card); color: var(--text);
+  }
+  #noticeForm #nContent { flex: 1 1 220px; min-width: 0; }
+  #noticeForm button { background: var(--accent); border-color: var(--accent); color: #fff; cursor: pointer; }
 </style>
 </head>
 <body>
 <main>
   <header>
-    <h1><span class="badge">1-13</span><span>광남중학교<small>우리 반 시간표 · 급식표</small></span></h1>
+    <h1><span class="badge">1-13</span><span>광남중학교<small>우리 반 시간표 · 급식표</small></span><img class="mascot" src="/icons/pompompurin.png" alt=""></h1>
     <div class="nav">
       <button id="prev" class="round" aria-label="지난주">◀</button>
       <span id="range"></span>
@@ -155,6 +182,17 @@
       <button id="thisWeek">이번 주</button>
     </div>
   </header>
+
+  <section id="noticeSection">
+    <h2>📌 알림장 <button class="write-toggle" id="writeToggle">✏️ 쓰기</button></h2>
+    <ul class="notices" id="notices"><li class="empty">불러오는 중…</li></ul>
+    <form id="noticeForm">
+      <select id="nKind"><option>공지</option><option>숙제</option><option>준비물</option></select>
+      <input id="nContent" maxlength="500" placeholder="내용" required>
+      <input id="nDue" type="date" title="마감일 (없어도 돼요)">
+      <button>올리기</button>
+    </form>
+  </section>
 
   <section>
     <h2>📚 시간표</h2>
@@ -268,6 +306,74 @@ document.getElementById('allergy').onchange = e => {
   document.getElementById('mealSection').classList.toggle('hide-allergy', !e.target.checked);
 };
 load();
+
+// 알림장 (Supabase)
+// 공개용 publishable 키라서 브라우저에 있어도 된다. 글쓰기·지우기는 DB 함수가 비밀번호를 확인한다.
+const SUPABASE_URL = 'https://ekdisahabshzffvfytft.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_sDVBKQvkD_-eJqMtEV1cWw_uai1eNXo';
+const sbHeaders = { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' };
+let notePassword = '';
+
+async function sbRpc(name, body) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, { method: 'POST', headers: sbHeaders, body: JSON.stringify(body) });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || res.statusText);
+  }
+}
+
+async function loadNotices() {
+  const ul = document.getElementById('notices');
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  try {
+    // 마감이 지난 지 7일 넘은 글은 숨긴다.
+    const since = ymd(addDays(today, -7)).replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/gwangnam13_notices?select=*&or=(due_date.is.null,due_date.gte.${since})&order=due_date.asc.nullslast,created_at.desc&limit=50`, { headers: sbHeaders });
+    const rows = await res.json();
+    if (!res.ok) throw new Error(rows.message);
+    if (!rows.length) { ul.innerHTML = '<li class="empty">새 소식이 없어요 🍮</li>'; return; }
+    ul.innerHTML = rows.map(n => {
+      let due = '';
+      if (n.due_date) {
+        const [y, m, d] = n.due_date.split('-').map(Number);
+        const left = Math.round((new Date(y, m - 1, d) - today) / 864e5);
+        const word = left === 0 ? '오늘까지' : left === 1 ? '내일까지' : left < 0 ? '지남' : `D-${left}`;
+        due = `<span class="due ${left >= 0 && left <= 1 ? 'soon' : ''}">${m}/${d} ${word}</span>`;
+      }
+      return `<li class="notice"><span class="tag ${esc(n.kind)}">${esc(n.kind)}</span><span class="text">${esc(n.content)}</span>${due}<button class="del" data-id="${n.id}" aria-label="지우기">✕</button></li>`;
+    }).join('');
+  } catch (err) {
+    ul.innerHTML = `<li class="empty">알림장을 불러오지 못했어요 🥲 ${esc(err.message)}</li>`;
+  }
+}
+
+function askPassword() {
+  if (!notePassword) notePassword = prompt('알림장 비밀번호') || '';
+  return notePassword;
+}
+async function withPassword(fn) {
+  if (!askPassword()) return;
+  try { await fn(notePassword); await loadNotices(); }
+  catch (err) { if (/비밀번호/.test(err.message)) notePassword = ''; alert(err.message); }
+}
+
+document.getElementById('writeToggle').onclick = () => document.getElementById('noticeSection').classList.toggle('editing');
+document.getElementById('noticeForm').onsubmit = e => {
+  e.preventDefault();
+  const content = document.getElementById('nContent');
+  withPassword(async pw => {
+    await sbRpc('gwangnam13_add_notice', {
+      p_password: pw, p_kind: document.getElementById('nKind').value,
+      p_content: content.value, p_due: document.getElementById('nDue').value || null,
+    });
+    content.value = '';
+  });
+};
+document.getElementById('notices').onclick = e => {
+  const btn = e.target.closest('.del');
+  if (btn && confirm('이 글을 지울까요?')) withPassword(pw => sbRpc('gwangnam13_delete_notice', { p_password: pw, p_id: Number(btn.dataset.id) }));
+};
+loadNotices();
 
 // 앱 설치(PWA)용 서비스 워커
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
